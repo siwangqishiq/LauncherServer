@@ -58,7 +58,9 @@ func handleTextMsg(textMsg string, conn *websocket.Conn){
 	fmt.Println("handle msg", textMsg)
 
 	if(textMsg == "play"){
-		AudioPlay(conn)
+		AudioPlayPcm(conn)
+	}else if(textMsg == "playopus"){
+		AudioPlayOpus(conn)
 	}
 }
 

@@ -8,8 +8,15 @@ import (
 	"github.com/hajimehoshi/go-mp3"
 )
 
-func AudioPlay(conn *websocket.Conn) {
-	fmt.Println("Auido play...")
+func AudioPlayOpus(conn *websocket.Conn) {
+	fmt.Println("Auido play decoder opus...")
+	conn.WriteMessage(websocket.TextMessage, []byte("music_play_opus"))
+
+	
+}
+
+func AudioPlayPcm(conn *websocket.Conn) {
+	fmt.Println("Auido play pcm...")
 
 	conn.WriteMessage(websocket.TextMessage, []byte("music_play"))
 
