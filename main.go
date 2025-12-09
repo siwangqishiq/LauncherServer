@@ -35,19 +35,42 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		
-		fmt.Printf("msgType = %d recv: %s\n",msgType, string(msg))
+		textMsg := string(msg)
+		fmt.Printf("msgType = %d recv: %s\n",msgType, textMsg)
 		// 回写消息（echo）
 		if err := conn.WriteMessage(msgType, msg); err != nil {
 			fmt.Println("Write error:", err)
-			return
+			break
+		}
+
+		switch msgType {
+		case websocket.TextMessage: //文本消息
+			handleTextMsg(textMsg, conn)
+		case websocket.BinaryMessage: //二进制消息
+			handleBinaryMsg(textMsg, conn)
+		default:
+			fmt.Println("handle default")
 		}
 	}
+}
+
+func handleTextMsg(textMsg string, conn *websocket.Conn){
+	fmt.Println("handle msg", textMsg)
+
+	if(textMsg == "play"){
+		AudioPlay(conn)
+	}
+}
+
+func handleBinaryMsg(textMsg string, conn *websocket.Conn){
+	fmt.Println("handle msg", textMsg)
+	conn.WriteMessage(websocket.TextMessage,[]byte("play music"));
 }
 
 func main(){
 	var port string = ":8080"
 	fmt.Println("This is launcher server!")
-	
+
 	http.HandleFunc("/ws", wsHandler)
 	fmt.Println("WebSocket server started: ws://localhost"+ port +"/ws")
 	if err := http.ListenAndServe(port, nil); err != nil {
