@@ -57,9 +57,10 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 func handleTextMsg(textMsg string, conn *websocket.Conn){
 	fmt.Println("handle msg", textMsg)
 
-	if(textMsg == "play"){
+	switch textMsg {
+	case "play":
 		AudioPlayPcm(conn)
-	}else if(textMsg == "playopus"){
+	case "playopus":
 		AudioPlayOpus(conn)
 	}
 }
