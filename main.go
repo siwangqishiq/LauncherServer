@@ -59,9 +59,9 @@ func handleTextMsg(textMsg string, conn *websocket.Conn){
 
 	switch textMsg {
 	case "play":
-		AudioPlayPcm(conn)
+		go AudioPlayPcm(conn)
 	case "playopus":
-		AudioPlayOpus(conn)
+		go AudioPlayOpus(conn)
 	}
 }
 
@@ -71,11 +71,11 @@ func handleBinaryMsg(textMsg string, conn *websocket.Conn){
 }
 
 func main(){
-	var port string = ":8080"
+	var port string = ":8888"
 	fmt.Println("This is launcher server!")
 
 	http.HandleFunc("/ws", wsHandler)
-	fmt.Println("WebSocket server started: ws://localhost"+ port +"/ws")
+	fmt.Println("WebSocket server started: ws://<host>"+ port +"/ws")
 	if err := http.ListenAndServe(port, nil); err != nil {
 		fmt.Println(err)
 	}
