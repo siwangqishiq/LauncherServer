@@ -127,7 +127,6 @@ func AudioPlayOpus(conn *websocket.Conn) {
         fmt.Println("read file error", err.Error())
         return
     }
-
     defer f.Close()
 
     // 解码为 PCM
@@ -137,7 +136,7 @@ func AudioPlayOpus(conn *websocket.Conn) {
         return 
     }
 
-    srcRate := decoder.SampleRate() //原始采样率 (e.g., 44100)
+    srcRate := decoder.SampleRate() //原始文件的采样率
     channels := 2
     fmt.Println("MP3 sample rate:", srcRate, decoder.Length())
 
@@ -173,11 +172,9 @@ func AudioPlayOpus(conn *websocket.Conn) {
     sendPcmBytes := 0
     for{
         // --- 缓冲限制逻辑 ---
-        // 如果缓冲已满，暂停解码，等待发送循环消耗数据，以维持实时性
 		var readed int = 0
         if len(pcmBuf) >= MaxPcmBufSamples {
             time.Sleep(5 * time.Millisecond) 
-            // 注意：我们不使用 continue，因为即使不解码，我们仍需要检查并发送已缓冲的数据
         } else {
             // --- 文件解码逻辑 ---
             n, err := decoder.Read(readBuf)
@@ -214,7 +211,7 @@ func AudioPlayOpus(conn *websocket.Conn) {
 
         // 2. 对这个小块进行重采样
         resampled := resampleLinearInt16(pcmBlock, srcRate, outRate, channels)
-		
+
         // 3. 检查重采样结果是否足够输出一帧 Opus
         if len(resampled) < samplesPerFrame { 
              // 理论上不会发生，但如果发生，跳过并继续累积
@@ -251,9 +248,9 @@ func AudioPlayOpus(conn *websocket.Conn) {
             sendPcmBytes , "/", totalPcmBytes,
             "pcmBuf size:", len(pcmBuf)) // 观察 pcmBuf 大小是否稳定
     }//end for
-    
+
+    conn.WriteMessage(websocket.TextMessage, []byte("music_stop"))
     fmt.Println("mp3 opus encode end:", err)
-    conn.WriteMessage(websocket.TextMessage, []byte("musicstop"))
 }
 
 func resampleLinearInt16(in []int16, inRate, outRate, channels int) []int16 {
@@ -350,15 +347,14 @@ func AudioPlayPcm(conn *websocket.Conn) {
 
 			if err != nil {
 				fmt.Println("WS write:", err)
-				conn.WriteMessage(websocket.TextMessage, []byte("musicstop"))
 				break
 			}
 		}
 		
 		if err != nil {
 			fmt.Println("mp3 decode end:", err)
-			conn.WriteMessage(websocket.TextMessage, []byte("musicstop"))
 			break
 		}
-	}
+	}//end for each
+    conn.WriteMessage(websocket.TextMessage, []byte("music_stop"))
 }
